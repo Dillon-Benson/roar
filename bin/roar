@@ -40,7 +40,12 @@ begin
 			adult = "No"
 		end
 
-		rows = [[reddits[count].white, sr.title.white, sr.url.white, sr.ups.to_s.green, sr.downs.to_s.red, sr.score.to_s.yellow, sr.over_18.to_s.red_on_blue]]
+		title = sr.title.slice(0, 65)
+		if title.length > 64
+			title += '...'
+		end
+
+		rows = [[reddits[count].white, title.white, sr.url.white, sr.ups.to_s.green, sr.downs.to_s.red, sr.score.to_s.yellow, sr.over_18.to_s.red_on_blue]]
 		table = Terminal::Table.new(:headings => ['subreddit', 'title', 'URL', 'Ups', 'Downs', 'Score', 'Over 18'], :rows => rows)
 		puts table
 		puts "\n\n\n\n"
