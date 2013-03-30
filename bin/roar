@@ -1,24 +1,40 @@
 #! /usr/bin/env ruby
 require File.dirname(__FILE__) + '/../lib/roar'
 require 'ruby-growl'
+require 'choice'
 
-sr = Subreddit.new("wtf")
+Choice.options do
+	option :subreddits do
+		short '-s'
+		long '--subreddit *SUBREDDITS'
+	end
+end
 
 g = Growl.new "localhost", "ruby-growl"
 
-reddits = ["wtf", "gifs", "funny"]
+reddits = Choice.choices[:subreddits]
 count = 0
 reddits.each do |reddit|
 	g.add_notification(reddit)
 end
 
+notification_number = 1
+adult = "No"
+
 begin
 	puts "Press ctrl-C to stop"
 	loop do
 		sr = Subreddit.new(reddits[count])
-		g.notify(reddits[count], reddits[count], sr.title)
-		count = -1 if count == 2
+		g.notify(reddits[count], "/r/#{reddits[count]}", sr.title)
+		if sr.over_18
+			adult = "Yes"
+		else
+			adult = "No"
+		end
+		puts "#{notification_number}.\nTitle => #{sr.title}\nURL => #{sr.url}\nUps => #{sr.ups}\nDowns => #{sr.downs}\n#Score => #{sr.score}\nOver 18 => #{adult}\n\n\n"
+		count = -1 if count == reddits.length - 1
 		count += 1
+		notification_number += 1
 		sleep(5)
 	end
 	rescue Interrupt => e
