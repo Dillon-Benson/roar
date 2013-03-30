@@ -1,0 +1,26 @@
+#! /usr/bin/env ruby
+require File.dirname(__FILE__) + '/../lib/roar'
+require 'ruby-growl'
+
+sr = Subreddit.new("wtf")
+
+g = Growl.new "localhost", "ruby-growl"
+
+reddits = ["wtf", "gifs", "funny"]
+count = 0
+reddits.each do |reddit|
+	g.add_notification(reddit)
+end
+
+begin
+	puts "Press ctrl-C to stop"
+	loop do
+		sr = Subreddit.new(reddits[count])
+		g.notify(reddits[count], reddits[count], sr.title)
+		count = -1 if count == 2
+		count += 1
+		sleep(5)
+	end
+	rescue Interrupt => e
+		puts "#{e} Stopping..."
+end
