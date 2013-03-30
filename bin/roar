@@ -2,11 +2,19 @@
 require File.dirname(__FILE__) + '/../lib/roar'
 require 'ruby-growl'
 require 'choice'
+require 'colored'
+require 'terminal-table'
 
 Choice.options do
 	option :subreddits do
 		short '-s'
 		long '--subreddit *SUBREDDITS'
+	end
+
+	option :interval do
+		short '-i'
+		long '--interval'
+		default 300
 	end
 end
 
@@ -31,11 +39,15 @@ begin
 		else
 			adult = "No"
 		end
-		puts "#{notification_number}.\nTitle => #{sr.title}\nURL => #{sr.url}\nUps => #{sr.ups}\nDowns => #{sr.downs}\n#Score => #{sr.score}\nOver 18 => #{adult}\n\n\n"
+
+		rows = [[reddits[count].white, sr.title.white, sr.url.white, sr.ups.to_s.green, sr.downs.to_s.red, sr.score.to_s.yellow, sr.over_18.to_s.red_on_blue]]
+		table = Terminal::Table.new(:headings => ['subreddit', 'title', 'URL', 'Ups', 'Downs', 'Score', 'Over 18'], :rows => rows)
+		puts table
+		puts "\n\n\n\n"
 		count = -1 if count == reddits.length - 1
 		count += 1
 		notification_number += 1
-		sleep(5)
+		sleep(Integer(Choice.choices[:interval]))
 	end
 	rescue Interrupt => e
 		puts "#{e} Stopping..."
