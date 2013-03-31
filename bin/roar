@@ -4,6 +4,8 @@ require 'ruby-growl'
 require 'choice'
 require 'colored'
 require 'terminal-table'
+require 'RMagick'
+include Magick
 
 Choice.options do
 	option :subreddits do
@@ -15,6 +17,12 @@ Choice.options do
 		short '-i'
 		long '--interval'
 		default 300
+	end
+
+	option :awesome do
+		short '-a'
+		long '--awesome'
+		default true
 	end
 end
 
@@ -43,6 +51,30 @@ begin
 		title = sr.title.slice(0, 65)
 		if title.length > 64
 			title += '...'
+		end
+
+		if Choice.choices[:awesome]
+			image_str = "Subreddit -- #{reddits[count]}\n\nPosted by -- #{sr.author}\n\nHosted on -- #{sr.domain}\n\nTitle -- #{title}\n\nURL -- #{sr.url}\n\nUp votes -- #{sr.ups}\n\nDown votes -- #{sr.downs}\n\nScore -- #{sr.score}\n\nOver 18 -- #{sr.over_18}"
+			base_image_loc = "#{Dir.pwd}/black.jpg"
+			system("system_profiler SPDisplaysDataType | grep Resolution >> temp")
+			String resolution = ""
+			File.open("temp", "r").each_line do |line|
+				resolution = line
+			end
+			File.delete("temp")
+			matches = resolution.match(/(\d+) x (\d+)/)
+			base_image = Image.new(Integer(matches[1]), Integer(matches[2])) { self.background_color = "white" }.write(base_image_loc)
+			blank = Magick::ImageList.new.from_blob(open('black.jpg') {|f| f.read})
+			text = Magick::Draw.new
+			text.annotate(blank, 0, 0, 0, 60, image_str) {
+				self.gravity = Magick::CenterGravity
+				self.pointsize = 24
+				self.stroke = 'transparent'
+				self.fill = 'black'
+				self.font_weight = Magick::BoldWeight
+			}
+			blank.write('black.jpg')
+			system("./change-it.applescript #{Dir.pwd}/black.jpg")
 		end
 
 		rows = [[reddits[count].white, title.white, sr.url.white, sr.ups.to_s.green, sr.downs.to_s.red, sr.score.to_s.yellow, sr.over_18.to_s.red_on_blue]]
